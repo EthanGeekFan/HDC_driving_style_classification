@@ -152,14 +152,12 @@ def HDC_hdcc_preproc(inputs, init_vecs):
 
     print('>>> generating context bundle')
     context_bundle = []
-    state = prog.build()
     for i in range(inputs.shape[0]):
         input_dict = {}
         for j in range(inputs.shape[1]):
             for k in range(inputs.shape[2]):
                 input_dict['input_' + str(j) + '_' + str(k)] = inputs[i, j, k] * scale
-        context_bundle.append(prog.run(state, input_dict)[1])
-        state.pc = 0
+        context_bundle.append(prog.run(prog.build(), input_dict)[1])
         print('>>> ' + str(i) + ' / ' + str(inputs.shape[0]) + ' done', end='\r')
     print('>>> context_bundle.shape: ', np.array(context_bundle).shape)
     
