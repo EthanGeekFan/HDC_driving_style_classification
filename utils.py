@@ -214,9 +214,9 @@ def create_HDC_vectors_hdcc(config, input):
     prog.add_output(hdcc.Types.HV_FHRR, 'output', 'input_dim')
 
     for i in range(config.n_inputs):
+        prog.decl_const(hdcc.Types.HV_FHRR, 'sensor_ids_' + str(i), hdcc.Types.HV_FHRR(config.input_dim))
         for j in range(config.n_steps):
             prog.add_input(float, 'input_' + str(j) + '_' + str(i))
-        prog.decl_const(hdcc.Types.HV_FHRR, 'sensor_ids_' + str(i), hdcc.Types.HV_FHRR(config.input_dim))
     for i in range(config.n_steps):
         prog.decl_const(hdcc.Types.HV_FHRR, 'timestamps_' + str(i), hdcc.Types.HV_FHRR(config.input_dim))
     
