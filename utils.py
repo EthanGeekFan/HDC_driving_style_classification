@@ -210,17 +210,17 @@ def create_HDC_vectors_hdcc(config, input):
     """
     print("=== create HDC vectors ===")
     prog = hdcc.HDProg()
-    prog.add_param('input_dim', config.input_dim)
+    prog.add_param(int, 'input_dim', config.input_dim)
     prog.add_output(hdcc.Types.HV_FHRR, 'output', 'input_dim')
 
     for i in range(config.n_inputs):
         for j in range(config.n_steps):
             prog.add_input(hdcc.Types.HV_FHRR, 'input_' + str(j) + '_' + str(i), 'input_dim')
-        prog.add_const(hdcc.Types.HV_FHRR, 'sensor_ids_' + str(i), 'input_dim')
+        prog.decl_const(hdcc.Types.HV_FHRR, 'sensor_ids_' + str(i), 'input_dim')
     for i in range(config.n_steps):
-        prog.add_const(hdcc.Types.HV_FHRR, 'timestamps_' + str(i), 'input_dim')
+        prog.decl_const(hdcc.Types.HV_FHRR, 'timestamps_' + str(i), 'input_dim')
     
-    prog.add_const(hdcc.Types.HV_FHRR, 'init_vec')
+    prog.decl_const(hdcc.Types.HV_FHRR, 'init_vec')
     prog.add_param('scale', config.scale)
     prog.add_param('n_steps', config.n_steps)
     prog.add_param('n_inputs', config.n_inputs)
