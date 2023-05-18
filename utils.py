@@ -225,9 +225,9 @@ def create_HDC_vectors_hdcc(config, input):
     prog.add_param(int, 'n_steps', config.n_steps)
     prog.add_param(int, 'n_inputs', config.n_inputs)
 
-    prog.assign('output', prog.bundle([
+    prog.assign('output', prog.bundle(*[
         prog.bind(
-            prog.bundle([
+            prog.bundle(*[
                 prog.bind(
                     'sensor_ids_' + str(i),
                     prog.frac_bind(
