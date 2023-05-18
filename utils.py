@@ -199,16 +199,13 @@ def create_HDC_vectors(config, input):
 
 
 import hdcc.HDProg as hdcc
+prog = None
 
-
-def create_HDC_vectors_hdcc(config, input):
+def hdc_prog_init(config):
     """
-    Same as create_HDC_vectors but using the hdcc package
-    create the HDC vectors from given input
-    @param config: config struct
-    @param input: inputs tensor with size m x t x v (m... number of samples, t... number of timesteps, v... number of variables)
+    initialize the hdcc program
     """
-    print("=== create HDC vectors ===")
+    global prog
     prog = hdcc.HDProg()
     prog.add_param(int, 'input_dim', config.input_dim)
     prog.add_output(hdcc.Types.HV_FHRR, 'output', 'input_dim')
@@ -243,6 +240,20 @@ def create_HDC_vectors_hdcc(config, input):
     state = prog.build()
     print("=== run program ===")
     print(prog)
+
+
+def create_HDC_vectors_hdcc(config, input):
+    """
+    Same as create_HDC_vectors but using the hdcc package
+    create the HDC vectors from given input
+    @param config: config struct
+    @param input: inputs tensor with size m x t x v (m... number of samples, t... number of timesteps, v... number of variables)
+    """
+    print("=== create HDC vectors ===")
+    global prog
+    if prog is None:
+        print("=== init program ===")
+        hdc_prog_init(config)
     t_proc = []
 
     for i in range(config.n_time_measures):
@@ -254,7 +265,8 @@ def create_HDC_vectors_hdcc(config, input):
             for k in range(config.n_inputs):
                 for l in range(config.n_steps):
                     input_dict['input_' + str(l) + '_' + str(k)] = input[j, l, k]
-            output.append(prog.run(prog.build(), input_dict)[1])
+            state = prog.build()
+            output.append(prog.run(state, input_dict)[1])
             print("  > " + str(j + 1) + "/" + str(input.shape[0]) + " done")
         t_proc.append(time.perf_counter() - t)
     preprocessing_time = np.median(t_proc)
