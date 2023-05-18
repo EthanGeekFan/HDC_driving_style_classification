@@ -27,7 +27,7 @@ def HDC_ANN_tf(input, config, init_vecs, W, biases):
     tf.config.optimizer.set_jit(True)
 
     # preprocessing
-    preproc = HDC_tf_preproc(input, init_vecs)
+    preproc = HDC_hdcc_preproc(input, init_vecs)
 
     # normalize data
     norm_data = tf.divide(preproc - config.m,config.s)
@@ -129,4 +129,28 @@ def HDC_tf_preproc(inputs, init_vecs):
     context_bundle_sin = (tf.reduce_sum(complex_context_sin, axis=1))
     context_bundle = tf.math.atan2(context_bundle_sin, context_bundle_cos)
 
+    return context_bundle
+
+
+from hdcc.HDProg import HDProg
+
+
+def HDC_hdcc_preproc(inputs, init_vecs):
+    '''
+    Same as HDC_tf_preproc but with hdcc
+    preprocessing function to create HDC vectors with tensorflow on GPU
+    @param inputs: input tensor (#samples , #variables, #timesteps)
+    @param init_vecs: initial hypervectors
+    @return: context vectors
+    '''
+    prog: HDProg = init_vecs['prog']
+
+    context_bundle = []
+    for i in range(inputs.shape[0]):
+        input_dict = {}
+        for j in range(inputs.shape[1]):
+            for k in range(inputs.shape[2]):
+                input_dict['input_' + str(j) + '_' + str(k)] = inputs[i, j, k]
+        context_bundle.append(prog.run(prog.build(), input_dict)[1])
+    
     return context_bundle

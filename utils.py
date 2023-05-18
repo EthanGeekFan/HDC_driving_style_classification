@@ -13,7 +13,7 @@ from tensorflow.keras.layers import Input, Dense, LSTM, multiply, concatenate, A
 from tensorflow.keras.layers import Conv1D, BatchNormalization, GlobalAveragePooling1D, Permute, Dropout
 from tensorflow.python.eager.context import context, EAGER_MODE, GRAPH_MODE, eager_mode, graph_mode
 
-from model import HDC_tf_preproc
+from model import HDC_tf_preproc, HDC_hdcc_preproc
 
 def extract_batch_size(_train, step, batch_size):
     # Function to fetch a "batch_size" amount of data from "(X|y)_train" data. 
@@ -196,3 +196,63 @@ def create_HDC_vectors(config, input):
         preprocessing_time = np.median(t_proc)
 
     return preprocessing_time, output, traces, init_vecs
+
+
+import hdcc.HDProg as hdcc
+
+
+def create_HDC_vectors_hdcc(config, input):
+    """
+    Same as create_HDC_vectors but using the hdcc package
+    create the HDC vectors from given input
+    @param config: config struct
+    @param input: inputs tensor with size m x t x v (m... number of samples, t... number of timesteps, v... number of variables)
+    """
+    prog = hdcc.HDProg()
+    prog.add_param('input_dim', config.input_dim)
+    prog.add_output(hdcc.Types.HV_FHRR, 'output', 'input_dim')
+
+    for i in range(config.n_inputs):
+        for j in range(config.n_steps):
+            prog.add_input(hdcc.Types.HV_FHRR, 'input_' + str(j) + '_' + str(i), 'input_dim')
+        prog.add_const(hdcc.Types.HV_FHRR, 'sensor_ids_' + str(i), 'input_dim')
+    for i in range(config.n_steps):
+        prog.add_const(hdcc.Types.HV_FHRR, 'timestamps_' + str(i), 'input_dim')
+    
+    prog.add_const(hdcc.Types.HV_FHRR, 'init_vec')
+    prog.add_param('scale', config.scale)
+    prog.add_param('n_steps', config.n_steps)
+    prog.add_param('n_inputs', config.n_inputs)
+
+    prog.assign('output', prog.bundle([
+        prog.bind(
+            prog.bundle([
+                prog.bind(
+                    'sensor_ids_' + str(i),
+                    prog.frac_bind(
+                        'init_vec',
+                        'input_' + str(t) + '_' + str(i),
+                    )
+                ) for i in range(config.n_inputs)
+            ]),
+            'timestamps_' + str(t)
+        ) for t in range(config.n_steps)
+    ]))
+
+    state = prog.build()
+    print(prog)
+    t_proc = []
+
+    for i in range(config.n_time_measures):
+        output = []
+        t = time.perf_counter()
+        for j in range(input.shape[0]):
+            input_dict = {}
+            for k in range(config.n_inputs):
+                for l in range(config.n_steps):
+                    input_dict['input_' + str(l) + '_' + str(k)] = input[j, l, k]
+            output.append(prog.run(prog.build(), input_dict)[1])
+        t_proc.append(time.perf_counter() - t)
+    preprocessing_time = np.median(t_proc)
+
+    return preprocessing_time, output, [], {'init_vec': state.val_table['init_vec'][3], 'sensor_ids': [state.val_table['sensor_ids_' + str(i)][3] for i in range(config.n_inputs)], 'timestamps': [state.val_table['timestamps_' + str(i)][3] for i in range(config.n_steps)], 'scale':config.scale, 'prog': prog}
