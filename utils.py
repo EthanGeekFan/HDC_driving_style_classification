@@ -208,6 +208,7 @@ def create_HDC_vectors_hdcc(config, input):
     @param config: config struct
     @param input: inputs tensor with size m x t x v (m... number of samples, t... number of timesteps, v... number of variables)
     """
+    print("=== create HDC vectors ===")
     prog = hdcc.HDProg()
     prog.add_param('input_dim', config.input_dim)
     prog.add_output(hdcc.Types.HV_FHRR, 'output', 'input_dim')
@@ -238,21 +239,25 @@ def create_HDC_vectors_hdcc(config, input):
             'timestamps_' + str(t)
         ) for t in range(config.n_steps)
     ]))
-
+    print("=== build program ===")
     state = prog.build()
+    print("=== run program ===")
     print(prog)
     t_proc = []
 
     for i in range(config.n_time_measures):
         output = []
         t = time.perf_counter()
+        print("> generating HDC vectors: ")
         for j in range(input.shape[0]):
             input_dict = {}
             for k in range(config.n_inputs):
                 for l in range(config.n_steps):
                     input_dict['input_' + str(l) + '_' + str(k)] = input[j, l, k]
             output.append(prog.run(prog.build(), input_dict)[1])
+            print("  > " + str(j + 1) + "/" + str(input.shape[0]) + " done")
         t_proc.append(time.perf_counter() - t)
     preprocessing_time = np.median(t_proc)
+    print("=== done ===")
 
     return preprocessing_time, output, [], {'init_vec': state.val_table['init_vec'][3], 'sensor_ids': [state.val_table['sensor_ids_' + str(i)][3] for i in range(config.n_inputs)], 'timestamps': [state.val_table['timestamps_' + str(i)][3] for i in range(config.n_steps)], 'scale':config.scale, 'prog': prog}
