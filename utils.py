@@ -216,14 +216,14 @@ def create_HDC_vectors_hdcc(config, input):
     for i in range(config.n_inputs):
         for j in range(config.n_steps):
             prog.add_input(hdcc.Types.HV_FHRR, 'input_' + str(j) + '_' + str(i), 'input_dim')
-        prog.decl_const(hdcc.Types.HV_FHRR, 'sensor_ids_' + str(i), 'input_dim')
+        prog.decl_const(hdcc.Types.HV_FHRR, 'sensor_ids_' + str(i), 'input_dim', hdcc.Types.HV_FHRR(config.input_dim).data)
     for i in range(config.n_steps):
-        prog.decl_const(hdcc.Types.HV_FHRR, 'timestamps_' + str(i), 'input_dim')
+        prog.decl_const(hdcc.Types.HV_FHRR, 'timestamps_' + str(i), 'input_dim', hdcc.Types.HV_FHRR(config.input_dim).data)
     
-    prog.decl_const(hdcc.Types.HV_FHRR, 'init_vec')
-    prog.add_param('scale', config.scale)
-    prog.add_param('n_steps', config.n_steps)
-    prog.add_param('n_inputs', config.n_inputs)
+    prog.decl_const(hdcc.Types.HV_FHRR, 'init_vec', 'input_dim', hdcc.Types.HV_FHRR(config.input_dim).data)
+    prog.add_param(int, 'scale', config.scale)
+    prog.add_param(int, 'n_steps', config.n_steps)
+    prog.add_param(int, 'n_inputs', config.n_inputs)
 
     prog.assign('output', prog.bundle([
         prog.bind(
