@@ -220,7 +220,7 @@ def create_HDC_vectors_hdcc(config, input):
     for i in range(config.n_steps):
         prog.decl_const(hdcc.Types.HV_FHRR, 'timestamps_' + str(i), hdcc.Types.HV_FHRR(config.input_dim))
     
-    prog.decl_const(hdcc.Types.HV_FHRR, 'init_vec', hdcc.Types.HV_FHRR(config.input_dim).data)
+    prog.decl_const(hdcc.Types.HV_FHRR, 'init_vec', hdcc.Types.HV_FHRR(config.input_dim))
     prog.add_param(int, 'scale', config.scale)
     prog.add_param(int, 'n_steps', config.n_steps)
     prog.add_param(int, 'n_inputs', config.n_inputs)
