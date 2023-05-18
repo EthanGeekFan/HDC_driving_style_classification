@@ -267,7 +267,7 @@ def create_HDC_vectors_hdcc(config, input):
                     input_dict['input_' + str(l) + '_' + str(k)] = input[j, l, k]
             state = prog.build()
             output.append(prog.run(state, input_dict)[1].data)
-            print("  > " + str(j + 1) + "/" + str(input.shape[0]) + " done")
+            print("  > " + str(j + 1) + "/" + str(input.shape[0]) + " done", end="\r")
         t_proc.append(time.perf_counter() - t)
     preprocessing_time = np.median(t_proc)
     print("=== done ===")
