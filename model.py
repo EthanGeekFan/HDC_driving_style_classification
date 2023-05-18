@@ -85,14 +85,14 @@ def LSTM_Network(feature_mat, config):
 def HDC_tf_preproc(inputs, init_vecs):
     '''
     preprocessing function to create HDC vectors with tensorflow on GPU
-    @param inputs: input tensor (#samples , #variables, #timesteps)
+    @param inputs: input tensor (#samples , #timesteps, #sensors)
     @param init_vecs: initial hypervectors
     @return: context vectors
     '''
-    init_vec = init_vecs['init_vec']
-    sensor_ids = init_vecs['sensor_ids']
-    timestamps = init_vecs['timestamps']
-    scale = init_vecs['scale']
+    init_vec = init_vecs['init_vec'] # base for sensor val
+    sensor_ids = init_vecs['sensor_ids'] # hv for sensor ids
+    timestamps = init_vecs['timestamps'] # hv for timestamps
+    scale = init_vecs['scale'] # constant default 6
 
     tf.config.optimizer.set_jit(True)
     # fractional binding
@@ -155,7 +155,7 @@ def HDC_hdcc_preproc(inputs, init_vecs):
         input_dict = {}
         for j in range(inputs.shape[1]):
             for k in range(inputs.shape[2]):
-                input_dict['input_' + str(j) + '_' + str(k)] = inputs[i, j, k]
+                input_dict['input_' + str(j) + '_' + str(k)] = inputs[i, j, k] * 6
         context_bundle.append(prog.run(prog.build(), input_dict)[1])
         print('>>> ' + str(i) + ' / ' + str(inputs.shape[0]) + ' done', end='\r')
     print('>>> context_bundle.shape: ', np.array(context_bundle).shape)

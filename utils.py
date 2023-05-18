@@ -264,7 +264,7 @@ def create_HDC_vectors_hdcc(config, input):
             input_dict = {}
             for k in range(config.n_inputs):
                 for l in range(config.n_steps):
-                    input_dict['input_' + str(l) + '_' + str(k)] = input[j, l, k]
+                    input_dict['input_' + str(l) + '_' + str(k)] = input[j, l, k] * config.scale
             state = prog.build()
             output.append(prog.run(state, input_dict)[1].data)
             print("  > " + str(j + 1) + "/" + str(input.shape[0]) + " done", end="\r")
