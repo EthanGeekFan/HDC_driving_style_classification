@@ -266,7 +266,7 @@ def create_HDC_vectors_hdcc(config, input):
                 for l in range(config.n_steps):
                     input_dict['input_' + str(l) + '_' + str(k)] = input[j, l, k]
             state = prog.build()
-            output.append(prog.run(state, input_dict)[1])
+            output.append(prog.run(state, input_dict)[1].data)
             print("  > " + str(j + 1) + "/" + str(input.shape[0]) + " done")
         t_proc.append(time.perf_counter() - t)
     preprocessing_time = np.median(t_proc)
