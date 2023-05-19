@@ -180,6 +180,7 @@ def create_HDC_vectors(config, input):
 
         X = tf.compat.v1.placeholder(tf.float32, [None, config.n_steps, config.n_inputs], name="X")
         preproc = HDC_tf_preproc(X, init_vecs)
+        print("preproc", preproc)
         t_proc = []
         traces = []
 
@@ -194,7 +195,7 @@ def create_HDC_vectors(config, input):
             chrome_trace = fetched_timeline.generate_chrome_trace_format()
             traces.append(chrome_trace)
         preprocessing_time = np.median(t_proc)
-
+    print("output", output)
     return preprocessing_time, output, traces, init_vecs
 
 
