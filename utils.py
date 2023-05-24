@@ -214,15 +214,15 @@ def create_HDC_vectors_comp(config, input):
         # pre initialize vectors
         init_vec = tf.random.uniform(shape=(config.input_dim, 1), minval=-np.pi, maxval=np.pi, seed=1,
                                      dtype="float32")
-        init_vec_np = init_vec.numpy()
+        init_vec_np = init_vec.eval(session=tf.compat.v1.Session())
         sensor_ids = tf.random.uniform(shape=(config.input_dim, config.n_inputs), minval=-np.pi, maxval=np.pi,
                                        seed=2,
                                        dtype="float32")
-        sensor_ids_np = sensor_ids.numpy()
+        sensor_ids_np = sensor_ids.eval(session=tf.compat.v1.Session())
         timestamps = tf.random.uniform(shape=(config.input_dim, config.n_steps), minval=-np.pi, maxval=np.pi,
                                        seed=3,
                                        dtype="float32")
-        timestamps_np = timestamps.numpy()
+        timestamps_np = timestamps.eval(session=tf.compat.v1.Session())
         init_vecs = {'init_vec': init_vec, 'sensor_ids': sensor_ids, 'timestamps': timestamps, 'scale':config.scale}
         init_vecs_np = {'init_vec': init_vec_np, 'sensor_ids': sensor_ids_np, 'timestamps': timestamps_np, 'scale':config.scale}
 
@@ -230,7 +230,7 @@ def create_HDC_vectors_comp(config, input):
         global prog
         if prog is None:
             print("=== init program ===")
-            hdc_prog_init(config)
+            hdc_prog_init(config, init_vecs_np)
         print("=== run program ===")
         hdcc_output = []
         for j in range(input.shape[0]):
