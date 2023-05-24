@@ -202,23 +202,106 @@ def create_HDC_vectors(config, input):
 import hdcc.HDProg as hdcc
 prog = None
 
-def hdc_prog_init(config):
+
+def create_HDC_vectors_comp(config, input):
+    """
+    create the HDC vectors from given input
+    @param config: config struct
+    @param input: inputs tensor with size m x t x v (m... number of samples, t... number of timesteps, v... number of variables)
+    """
+    with graph_mode():
+        tf.config.optimizer.set_jit(True)
+        # pre initialize vectors
+        init_vec = tf.random.uniform(shape=(config.input_dim, 1), minval=-np.pi, maxval=np.pi, seed=1,
+                                     dtype="float32")
+        init_vec_np = init_vec.numpy()
+        sensor_ids = tf.random.uniform(shape=(config.input_dim, config.n_inputs), minval=-np.pi, maxval=np.pi,
+                                       seed=2,
+                                       dtype="float32")
+        sensor_ids_np = sensor_ids.numpy()
+        timestamps = tf.random.uniform(shape=(config.input_dim, config.n_steps), minval=-np.pi, maxval=np.pi,
+                                       seed=3,
+                                       dtype="float32")
+        timestamps_np = timestamps.numpy()
+        init_vecs = {'init_vec': init_vec, 'sensor_ids': sensor_ids, 'timestamps': timestamps, 'scale':config.scale}
+        init_vecs_np = {'init_vec': init_vec_np, 'sensor_ids': sensor_ids_np, 'timestamps': timestamps_np, 'scale':config.scale}
+
+        print("=== create HDC vectors ===")
+        global prog
+        if prog is None:
+            print("=== init program ===")
+            hdc_prog_init(config)
+        print("=== run program ===")
+        hdcc_output = []
+        for j in range(input.shape[0]):
+            input_dict = {}
+            for k in range(config.n_inputs):
+                for l in range(config.n_steps):
+                    input_dict['input_' + str(l) + '_' + str(k)] = input[j, l, k] * config.scale
+            state = prog.build()
+            hdcc_output.append(prog.run(state, input_dict)[1].data)
+            print("  > " + str(j + 1) + "/" + str(input.shape[0]) + " done", end="\r")
+        print()
+        print("ALL DONE")
+        hdcc_output = np.array(hdcc_output)
+        print()
+        print("HDCC output", hdcc_output)
+
+        X = tf.compat.v1.placeholder(tf.float32, [None, config.n_steps, config.n_inputs], name="X")
+        preproc = HDC_tf_preproc(X, init_vecs)
+        print("preproc", preproc)
+        t_proc = []
+        traces = []
+
+        for i in range(config.n_time_measures):
+            sess = tf.compat.v1.Session()
+            options = tf.compat.v1.RunOptions(trace_level=tf.compat.v1.RunOptions.FULL_TRACE)
+            run_metadata = tf.compat.v1.RunMetadata()
+            t = time.perf_counter()
+            output = sess.run(preproc, feed_dict={X: input}, options=options, run_metadata=run_metadata)
+            t_proc.append((time.perf_counter() - t))
+            fetched_timeline = timeline.Timeline(run_metadata.step_stats)
+            chrome_trace = fetched_timeline.generate_chrome_trace_format()
+            traces.append(chrome_trace)
+        preprocessing_time = np.median(t_proc)
+    print("Original output", output)
+    
+    # check if output is the same
+    if np.allclose(hdcc_output, output):
+        print("HDC output is the same as the original output")
+    else:
+        print("HDC output is NOT the same as the original output")
+
+    init_vecs['prog'] = prog
+    return preprocessing_time, output, traces, init_vecs
+
+
+def hdc_prog_init(config, init_vecs=None):
     """
     initialize the hdcc program
     """
+    if init_vecs:
+        sensor_ids = init_vecs['sensor_ids']
+        time_stamps = init_vecs['timestamps']
+        init_vec = init_vecs['init_vec']
+    else:
+        sensor_ids = np.random.uniform(-np.pi, np.pi, (config.input_dim, config.n_inputs))
+        time_stamps = np.random.uniform(-np.pi, np.pi, (config.input_dim, config.n_steps))
+        init_vec = np.random.uniform(-np.pi, np.pi, (config.input_dim, 1))
+
     global prog
     prog = hdcc.HDProg()
     prog.add_param(int, 'input_dim', config.input_dim)
     prog.add_output(hdcc.Types.HV_FHRR, 'output', 'input_dim')
 
     for i in range(config.n_inputs):
-        prog.decl_const(hdcc.Types.HV_FHRR, 'sensor_ids_' + str(i), hdcc.Types.HV_FHRR(config.input_dim))
+        prog.decl_const(hdcc.Types.HV_FHRR, 'sensor_ids_' + str(i), hdcc.Types.HV_FHRR(config.input_dim, sensor_ids[:, i]))
         for j in range(config.n_steps):
             prog.add_input(float, 'input_' + str(j) + '_' + str(i))
     for i in range(config.n_steps):
-        prog.decl_const(hdcc.Types.HV_FHRR, 'timestamps_' + str(i), hdcc.Types.HV_FHRR(config.input_dim))
+        prog.decl_const(hdcc.Types.HV_FHRR, 'timestamps_' + str(i), hdcc.Types.HV_FHRR(config.input_dim, time_stamps[:, i]))
     
-    prog.decl_const(hdcc.Types.HV_FHRR, 'init_vec', hdcc.Types.HV_FHRR(config.input_dim))
+    prog.decl_const(hdcc.Types.HV_FHRR, 'init_vec', hdcc.Types.HV_FHRR(config.input_dim, np.array(init_vec)))
     prog.add_param(int, 'scale', config.scale)
     prog.add_param(int, 'n_steps', config.n_steps)
     prog.add_param(int, 'n_inputs', config.n_inputs)
