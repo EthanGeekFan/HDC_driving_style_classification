@@ -234,7 +234,7 @@ def create_HDC_vectors_comp(config, input):
         if prog is None:
             print("=== init program ===")
             hdc_prog_init(config, init_vecs_np)
-        input_hash = hash((config, str(input)))
+        input_hash = hash(input.shape)
         if os.path.exists(f'preproc/{input_hash}.npy'):
             print("Preprocessed vectors already exist. Loading...")
             preproc = np.load(f'preproc/{input_hash}.npy', allow_pickle=True).item()
@@ -299,7 +299,7 @@ def create_HDC_vectors_comp(config, input):
     # save preprocessed vectors
     if not os.path.exists('preproc'):
         os.makedirs('preproc')
-    np.save(f'preproc/{input_hash}.npy', hdcc_output, allow_pickle=True)
+    np.save(f'preproc/{input_hash}.npy', hdcc_output, allow_pickle=False)
     return preprocessing_time, hdcc_output, traces, init_vecs
 
 
