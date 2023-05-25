@@ -211,11 +211,6 @@ def create_HDC_vectors_comp(config, input):
     """
     # check if preprocessed vectors are already saved
     # hash the input tensor to get a unique identifier
-    input_hash = hash((config, str(input)))
-    if os.path.exists(f'preproc/{input_hash}.npy'):
-        print("Preprocessed vectors already exist. Loading...")
-        preproc = np.load(f'preproc/{input_hash}.npy', allow_pickle=True).item()
-        return 0, preproc['output'], [], preproc['init_vecs']
     with graph_mode():
         tf.config.optimizer.set_jit(True)
         # pre initialize vectors
@@ -233,11 +228,18 @@ def create_HDC_vectors_comp(config, input):
         init_vecs = {'init_vec': init_vec, 'sensor_ids': sensor_ids, 'timestamps': timestamps, 'scale':config.scale}
         init_vecs_np = {'init_vec': init_vec_np, 'sensor_ids': sensor_ids_np, 'timestamps': timestamps_np, 'scale':config.scale}
 
+        
         print("=== create HDC vectors ===")
         global prog
         if prog is None:
             print("=== init program ===")
             hdc_prog_init(config, init_vecs_np)
+        input_hash = hash((config, str(input)))
+        if os.path.exists(f'preproc/{input_hash}.npy'):
+            print("Preprocessed vectors already exist. Loading...")
+            preproc = np.load(f'preproc/{input_hash}.npy', allow_pickle=True).item()
+            init_vecs['prog'] = prog
+            return 0, preproc['output'], [], init_vecs
         print("=== run program ===")
         print("input", input)
         print("input shape", input.shape)
@@ -297,7 +299,7 @@ def create_HDC_vectors_comp(config, input):
     # save preprocessed vectors
     if not os.path.exists('preproc'):
         os.makedirs('preproc')
-    np.save(f'preproc/{input_hash}.npy', {'output': hdcc_output, 'init_vecs': init_vecs})
+    np.save(f'preproc/{input_hash}.npy', hdcc_output, allow_pickle=True)
     return preprocessing_time, hdcc_output, traces, init_vecs
 
 
