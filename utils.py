@@ -276,6 +276,13 @@ def create_HDC_vectors_comp(config, input):
         exit(0)
     else:
         print("HDC output is NOT the same as the original output")
+        # print more information and save two outputs for comparison
+        print("HDC output shape", np.shape(hdcc_output[0]))
+        print("Original output shape", np.shape(output))
+        print("Original output[0] shape", np.shape(output[0]))
+        # save outputs
+        np.savetxt("hdcc_output.txt", hdcc_output)
+        np.savetxt("original_output.txt", output)
         exit(1)
 
     init_vecs['prog'] = prog
