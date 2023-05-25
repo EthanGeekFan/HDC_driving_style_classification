@@ -104,8 +104,8 @@ def main_HDC(args):
             #######################################################################################
             tf.compat.v1.disable_eager_execution()
             # create HDC vectors
-            t_train, X_train_HDC, traces_train, init_vecs = create_HDC_vectors_comp(config, X_train)
-            t_test, X_test_HDC, traces_test, init_vecs = create_HDC_vectors_comp(config, X_test)
+            t_train, X_train_HDC, traces_train, init_vecs = create_HDC_vectors_hdcc(config, X_train)
+            t_test, X_test_HDC, traces_test, init_vecs = create_HDC_vectors_hdcc(config, X_test)
             preprocessing_time = t_train+t_test
 
             # normalize HDC encodings
