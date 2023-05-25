@@ -233,18 +233,15 @@ def create_HDC_vectors_comp(config, input):
             hdc_prog_init(config, init_vecs_np)
         print("=== run program ===")
         hdcc_output = []
-        # for j in range(input.shape[0]):
-        input_dict = {}
-        for k in range(config.n_inputs):
-            for l in range(config.n_steps):
-                input_dict['input_' + str(l) + '_' + str(k)] = input[0, l, k] * config.scale
-        print('b')
-        state = prog.build()
-        print('c')
-        state, out = prog.run(state, input_dict)
-        print('d')
-        hdcc_output.append(out.data)
-        # print("  > " + str(j + 1) + "/" + str(input.shape[0]) + " done", end="\r")
+        for j in range(input.shape[0]):
+            input_dict = {}
+            for k in range(config.n_inputs):
+                for l in range(config.n_steps):
+                    input_dict['input_' + str(l) + '_' + str(k)] = input[0, l, k] * config.scale
+            state = prog.build()
+            state, out = prog.run(state, input_dict)
+            hdcc_output.append(out.data)
+            print("  > " + str(j + 1) + "/" + str(input.shape[0]) + " done", end="\r")
         print()
         print("ALL DONE")
         hdcc_output = np.array(hdcc_output)
@@ -271,22 +268,22 @@ def create_HDC_vectors_comp(config, input):
     print("Original output", output)
     
     # check if output is the same
-    if np.allclose(hdcc_output[0], output[0]):
-        print("HDC output is the same as the original output")
-        exit(0)
-    else:
-        print("HDC output is NOT the same as the original output")
-        # print more information and save two outputs for comparison
-        print("HDC output shape", np.shape(hdcc_output[0]))
-        print("Original output shape", np.shape(output))
-        print("Original output[0] shape", np.shape(output[0]))
-        # save outputs
-        np.savetxt("hdcc_output.txt", hdcc_output[0])
-        np.savetxt("original_output.txt", output)
-        exit(1)
+    # if np.allclose(hdcc_output[0], output[0]):
+    #     print("HDC output is the same as the original output")
+    #     exit(0)
+    # else:
+    #     print("HDC output is NOT the same as the original output")
+    #     # print more information and save two outputs for comparison
+    #     print("HDC output shape", np.shape(hdcc_output[0]))
+    #     print("Original output shape", np.shape(output))
+    #     print("Original output[0] shape", np.shape(output[0]))
+    #     # save outputs
+    #     np.savetxt("hdcc_output.txt", hdcc_output[0])
+    #     np.savetxt("original_output.txt", output)
+    #     exit(1)
 
     init_vecs['prog'] = prog
-    return preprocessing_time, output, traces, init_vecs
+    return preprocessing_time, hdcc_output, traces, init_vecs
 
 
 def hdc_prog_init(config, init_vecs=None):
