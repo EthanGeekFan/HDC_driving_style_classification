@@ -295,6 +295,8 @@ def create_HDC_vectors_comp(config, input):
     init_vecs['prog'] = prog
 
     # save preprocessed vectors
+    if not os.path.exists('preproc'):
+        os.makedirs('preproc')
     np.save(f'preproc/{input_hash}.npy', {'output': hdcc_output, 'traces': traces, 'init_vecs': init_vecs})
     return preprocessing_time, hdcc_output, traces, init_vecs
 
