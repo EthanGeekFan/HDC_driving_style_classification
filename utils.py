@@ -215,7 +215,7 @@ def create_HDC_vectors_comp(config, input):
     if os.path.exists(f'preproc/{input_hash}.npy'):
         print("Preprocessed vectors already exist. Loading...")
         preproc = np.load(f'preproc/{input_hash}.npy', allow_pickle=True).item()
-        return 0, preproc['output'], preproc['traces'], preproc['init_vecs']
+        return 0, preproc['output'], [], preproc['init_vecs']
     with graph_mode():
         tf.config.optimizer.set_jit(True)
         # pre initialize vectors
@@ -297,7 +297,7 @@ def create_HDC_vectors_comp(config, input):
     # save preprocessed vectors
     if not os.path.exists('preproc'):
         os.makedirs('preproc')
-    np.save(f'preproc/{input_hash}.npy', {'output': hdcc_output, 'traces': traces, 'init_vecs': init_vecs})
+    np.save(f'preproc/{input_hash}.npy', {'output': hdcc_output, 'init_vecs': init_vecs})
     return preprocessing_time, hdcc_output, traces, init_vecs
 
 
