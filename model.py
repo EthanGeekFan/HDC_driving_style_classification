@@ -152,6 +152,7 @@ def HDC_hdcc_preproc(inputs, init_vecs):
 
     print('>>> generating context bundle')
     context_bundle = []
+    inputs = np.array(inputs)
     for i in range(inputs.shape[0]):
         input_dict = {}
         for j in range(inputs.shape[1]):

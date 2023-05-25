@@ -244,7 +244,7 @@ def create_HDC_vectors_comp(config, input):
             print("  > " + str(j + 1) + "/" + str(input.shape[0]) + " done", end="\r")
         print()
         print("ALL DONE")
-        hdcc_output = np.array(hdcc_output)
+        hdcc_output = np.float32(np.array(hdcc_output))
         print()
         print("HDCC output", hdcc_output)
 
@@ -266,6 +266,9 @@ def create_HDC_vectors_comp(config, input):
             traces.append(chrome_trace)
         preprocessing_time = np.median(t_proc)
     print("Original output", output)
+
+    print("HDC type", type(hdcc_output))
+    print("Original type", type(output))
     
     # check if output is the same
     # if np.allclose(hdcc_output[0], output[0]):
