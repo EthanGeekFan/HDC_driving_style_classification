@@ -27,7 +27,7 @@ def HDC_ANN_tf(input, config, init_vecs, W, biases):
     tf.config.optimizer.set_jit(True)
 
     # preprocessing
-    preproc = HDC_hdcc_preproc(input, init_vecs)
+    preproc = HDC_tf_preproc(input, init_vecs)
 
     # normalize data
     norm_data = tf.divide(preproc - config.m,config.s)

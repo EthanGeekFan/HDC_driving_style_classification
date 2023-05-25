@@ -200,6 +200,7 @@ def create_HDC_vectors(config, input):
 
 
 import hdcc.HDProg as hdcc
+import hashlib
 prog = None
 
 
@@ -234,7 +235,7 @@ def create_HDC_vectors_comp(config, input):
         if prog is None:
             print("=== init program ===")
             hdc_prog_init(config, init_vecs_np)
-        input_hash = hash(input.shape)
+        input_hash = hashlib.sha256(str(input) + str(config)).hexdigest()
         if os.path.exists(f'preproc/{input_hash}.npy'):
             print("Preprocessed vectors already exist. Loading...")
             preproc = np.load(f'preproc/{input_hash}.npy', allow_pickle=True).item()
