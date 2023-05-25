@@ -281,7 +281,7 @@ def create_HDC_vectors_comp(config, input):
         print("Original output shape", np.shape(output))
         print("Original output[0] shape", np.shape(output[0]))
         # save outputs
-        np.savetxt("hdcc_output.txt", hdcc_output)
+        np.savetxt("hdcc_output.txt", hdcc_output[0])
         np.savetxt("original_output.txt", output)
         exit(1)
 
@@ -314,7 +314,7 @@ def hdc_prog_init(config, init_vecs=None):
     for i in range(config.n_steps):
         prog.decl_const(hdcc.Types.HV_FHRR, 'timestamps_' + str(i), hdcc.Types.HV_FHRR(config.input_dim, time_stamps[:, i]))
     
-    prog.decl_const(hdcc.Types.HV_FHRR, 'init_vec', hdcc.Types.HV_FHRR(config.input_dim, np.array(init_vec)))
+    prog.decl_const(hdcc.Types.HV_FHRR, 'init_vec', hdcc.Types.HV_FHRR(config.input_dim, np.array(init_vec)[:, 0]))
     prog.add_param(int, 'scale', config.scale)
     prog.add_param(int, 'n_steps', config.n_steps)
     prog.add_param(int, 'n_inputs', config.n_inputs)
