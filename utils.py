@@ -211,7 +211,7 @@ def create_HDC_vectors_comp(config, input):
     """
     # check if preprocessed vectors are already saved
     # hash the input tensor to get a unique identifier
-    input_hash = hash((config, input))
+    input_hash = hash((config, str(input)))
     if os.path.exists(f'preproc/{input_hash}.npy'):
         print("Preprocessed vectors already exist. Loading...")
         preproc = np.load(f'preproc/{input_hash}.npy', allow_pickle=True).item()
