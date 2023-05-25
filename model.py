@@ -148,11 +148,11 @@ def HDC_hdcc_preproc(inputs, init_vecs):
 
     print('>>> Preprocessing with hdcc')
     print('>>> inputs.shape: ', inputs.shape)
-    print('>>> prog: ', prog)
+    # print('>>> prog: ', prog)
 
     print('>>> generating context bundle')
     context_bundle = []
-    inputs = np.array(inputs)
+    inputs = inputs.eval(session=tf.compat.v1.Session())
     for i in range(inputs.shape[0]):
         input_dict = {}
         for j in range(inputs.shape[1]):

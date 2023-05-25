@@ -209,6 +209,13 @@ def create_HDC_vectors_comp(config, input):
     @param config: config struct
     @param input: inputs tensor with size m x t x v (m... number of samples, t... number of timesteps, v... number of variables)
     """
+    # check if preprocessed vectors are already saved
+    # hash the input tensor to get a unique identifier
+    input_hash = hash((config, input))
+    if os.path.exists(f'preproc/{input_hash}.npy'):
+        print("Preprocessed vectors already exist. Loading...")
+        preproc = np.load(f'preproc/{input_hash}.npy', allow_pickle=True).item()
+        return 0, preproc['output'], preproc['traces'], preproc['init_vecs']
     with graph_mode():
         tf.config.optimizer.set_jit(True)
         # pre initialize vectors
@@ -286,6 +293,9 @@ def create_HDC_vectors_comp(config, input):
     #     exit(1)
 
     init_vecs['prog'] = prog
+
+    # save preprocessed vectors
+    np.save(f'preproc/{input_hash}.npy', {'output': hdcc_output, 'traces': traces, 'init_vecs': init_vecs})
     return preprocessing_time, hdcc_output, traces, init_vecs
 
 
