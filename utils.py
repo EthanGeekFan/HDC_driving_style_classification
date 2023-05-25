@@ -232,15 +232,15 @@ def create_HDC_vectors_comp(config, input):
             print("=== init program ===")
             hdc_prog_init(config, init_vecs_np)
         print("=== run program ===")
+        print("input", input)
+        print("input shape", input.shape)
         hdcc_output = []
         for j in range(input.shape[0]):
             input_dict = {}
             for k in range(config.n_inputs):
                 for l in range(config.n_steps):
                     input_dict['input_' + str(l) + '_' + str(k)] = input[j, l, k] * config.scale
-            state = prog.build()
-            state, out = prog.run(state, input_dict)
-            hdcc_output.append(out.data)
+            hdcc_output.append(prog.run(prog.build(), input_dict)[1].data)
             print("  > " + str(j + 1) + "/" + str(input.shape[0]) + " done", end="\r")
         print()
         print("ALL DONE")
